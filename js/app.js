@@ -111,8 +111,9 @@ function init() {
     ),
   };
 
-  // 遺跡レイヤー初期化
+  // 遺跡・詩歌レイヤー初期化
   RuinsLayer.init(map);
+  PoemsLayer.init(map);
 
   // ボーリングマーカー追加
   addBoringMarkers();
@@ -308,6 +309,11 @@ function setupControls(baseLayers) {
   document.getElementById('geo-opacity').addEventListener('input', e => {
     const opacity = e.target.value / 100;
     geoLayer.setStyle({ fillOpacity: opacity * 0.9, opacity });
+  });
+
+  // 詩歌レイヤー
+  document.getElementById('layer-poems').addEventListener('change', e => {
+    e.target.checked ? PoemsLayer.addTo(map) : PoemsLayer.removeFrom(map);
   });
 
   // 古地図レイヤー チェックボックス

@@ -426,6 +426,77 @@ footer {
   box-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
+/* ─── 詩歌ポップアップ ─── */
+.poem-popup {
+  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+  max-width: 310px;
+}
+
+.poem-header {
+  padding-left: 9px;
+  margin-bottom: 8px;
+}
+
+.poem-genre {
+  font-size: 0.68rem;
+  color: #888;
+  font-family: sans-serif;
+  margin-bottom: 2px;
+}
+
+.poem-poet {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1a1e2e;
+}
+
+.poem-era {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #666;
+  font-family: sans-serif;
+}
+
+.poem-text {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #1a1e2e;
+  padding: 10px 12px;
+  background: #faf8f3;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  letter-spacing: 0.05em;
+  border-left: 3px solid #c9a84c;
+}
+
+.poem-reading {
+  font-size: 0.7rem;
+  color: #888;
+  font-family: sans-serif;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  letter-spacing: 0.08em;
+}
+
+.poem-context {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #333;
+  font-family: sans-serif;
+  margin-bottom: 8px;
+}
+
+.poem-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.7rem;
+  font-family: sans-serif;
+}
+
+.poem-location { color: #555; }
+.poem-source   { color: #777; }
+
 /* ─── 時代比較スライダー（カスタム） ─── */
 .compare-range-input {
   position: absolute;
