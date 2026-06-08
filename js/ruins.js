@@ -220,11 +220,142 @@ const RuinsLayer = (() => {
     </div>`;
   }
 
+  // ─── Wikidata SPARQL取得 ────────────────────────────────────────
+  const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
+  const BOUNDS_QUERY = { latMin: 35.75, latMax: 36.20, lngMin: 138.05, lngMax: 138.55 };
+
+  // WikidataのQID→時代マッピング
+  const WD_TYPE_MAP = {
+    Q839954:  { period: 'jomon',    label: '遺跡',     type: '考古遺跡' },
+    Q13431:   { period: 'kofun',    label: '古墳',     type: '古墳' },
+    Q1641119: { period: 'medieval', label: '史跡',     type: '歴史的遺産' },
+    Q4989906: { period: 'jomon',    label: '土塁',     type: '土塁遺跡' },
+    Q44377:   { period: 'medieval', label: '城',       type: '城跡' },
+    Q1324928: { period: 'kofun',    label: '前方後円墳', type: '古墳' },
+  };
+
+  // タイプ別に個別クエリを発行（wdt:P279*を避け高速化）
+  const WD_QUERIES = [
+    { type: 'Q839954', period: 'jomon',    label: '遺跡' },
+    { type: 'Q13431',  period: 'kofun',    label: '古墳' },
+    { type: 'Q1324928',period: 'kofun',    label: '前方後円墳' },
+    { type: 'Q44377',  period: 'medieval', label: '城跡' },
+    { type: 'Q1641119',period: 'medieval', label: '史跡' },
+  ];
+
+  function buildQuery(typeQid) {
+    const { latMin, latMax, lngMin, lngMax } = BOUNDS_QUERY;
+    return `SELECT DISTINCT ?item ?itemLabel ?coord ?desc WHERE {
+  ?item wdt:P31 wd:${typeQid} ; wdt:P625 ?coord .
+  BIND(geof:latitude(?coord) AS ?lat)
+  BIND(geof:longitude(?coord) AS ?lon)
+  FILTER(?lat > ${latMin} && ?lat < ${latMax} && ?lon > ${lngMin} && ?lon < ${lngMax})
+  OPTIONAL { ?item schema:description ?desc FILTER(LANG(?desc) = "ja") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "ja,en". }
+} LIMIT 150`;
+  }
+
+  function parseWikidataResult(bindings) {
+    // 既存埋め込みデータのIDセット（重複排除用）
+    const existingIds = new Set(RUINS_DATA.map(r => r.name));
+    const parsed = [];
+    const seen = new Set();
+
+    for (const b of bindings) {
+      const name = b.itemLabel?.value ?? '不明';
+      const qid = b.item?.value?.split('/').pop() ?? '';
+      const key = qid || name;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      // 座標パース "Point(lng lat)"
+      const coordStr = b.coord?.value ?? '';
+      const m = coordStr.match(/Point\(([0-9.]+)\s+([0-9.]+)\)/);
+      if (!m) continue;
+      const lng = parseFloat(m[1]), lat = parseFloat(m[2]);
+      if (isNaN(lat) || isNaN(lng)) continue;
+
+      // タイプ判定
+      const typeQid = b.type?.value?.split('/').pop() ?? '';
+      const typeInfo = WD_TYPE_MAP[typeQid] ?? { period: 'jomon', label: '遺跡', type: '考古遺跡' };
+
+      parsed.push({
+        id: qid, name, lat, lng,
+        period: typeInfo.period,
+        periodLabel: typeInfo.label,
+        type: b.typeLabel?.value ?? typeInfo.type,
+        city: '', pref: '',
+        desc: b.desc?.value ?? '',
+        designated: '',
+        _wikidata: true,
+        _wd_url: `https://www.wikidata.org/wiki/${qid}`,
+      });
+    }
+    return parsed;
+  }
+
+  function makeWikidataPopup(ruin) {
+    const p = RUIN_PERIODS.find(p => p.id === ruin.period);
+    const color = p ? p.color : '#888';
+    return `<div class="ruin-popup">
+      <div class="ruin-popup-header" style="border-left:4px solid ${color}">
+        <span class="ruin-period-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${ruin.periodLabel}</span>
+        <h3>${ruin.name}</h3>
+        <span class="ruin-type">${ruin.type}</span>
+      </div>
+      ${ruin.desc ? `<p class="ruin-desc">${ruin.desc}</p>` : '<p class="ruin-desc" style="color:#aaa">詳細情報なし</p>'}
+      <div class="ruin-designated" style="background:#f0f4ff">
+        🌐 <a href="${ruin._wd_url}" target="_blank" style="color:#1a6bcc">Wikidata で見る</a>
+      </div>
+    </div>`;
+  }
+
+  function addRuinMarker(ruin, mapRef) {
+    const isWd = ruin._wikidata;
+    const p = RUIN_PERIODS.find(p => p.id === ruin.period);
+    const color = p ? p.color : '#888';
+    const size = ruin.highlight ? 14 : isWd ? 8 : 10;
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:${size}px;height:${size}px;
+        background:${color};
+        border:${isWd ? '1.5px' : '2px'} solid rgba(255,255,255,${isWd ? '0.6' : '0.85'});
+        border-radius:50%;
+        box-shadow:0 1px 4px rgba(0,0,0,${isWd ? '0.35' : '0.55'});
+        opacity:${isWd ? '0.85' : '1'};
+      ">${ruin.highlight ? '<span style="font-size:8px;color:#fff;font-weight:900;line-height:14px;display:block;text-align:center">★</span>' : ''}</div>`,
+      iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+    });
+
+    const popup = isWd ? makeWikidataPopup(ruin) : makePopup(ruin);
+    const m = L.marker([ruin.lat, ruin.lng], { icon })
+      .bindPopup(popup, { maxWidth: 300 });
+    m._ruinPeriod = ruin.period;
+    markers.push(m);
+    if (mapRef && (activePeriod === 'all' || m._ruinPeriod === activePeriod)) {
+      m.addTo(mapRef);
+    }
+  }
+
+  let _mapRef = null;
+  let _visible = false;
+
   return {
     init(map) {
-      layerGroup = L.layerGroup();
+      _mapRef = map;
+      // 埋め込みデータを追加
       RUINS_DATA.forEach(ruin => {
-        const m = L.marker([ruin.lat, ruin.lng], { icon: makeIcon(ruin) })
+        const p = RUIN_PERIODS.find(p => p.id === ruin.period);
+        const color = p ? p.color : '#888';
+        const size = ruin.highlight ? 14 : 10;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="width:${size}px;height:${size}px;background:${color};border:2px solid rgba(255,255,255,0.85);border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,0.55);">${ruin.highlight ? '<span style="font-size:8px;color:#fff;font-weight:900;line-height:'+size+'px;display:block;text-align:center">★</span>' : ''}</div>`,
+          iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+        });
+        const m = L.marker([ruin.lat, ruin.lng], { icon })
           .bindPopup(makePopup(ruin), { maxWidth: 300 });
         m._ruinPeriod = ruin.period;
         markers.push(m);
@@ -232,14 +363,16 @@ const RuinsLayer = (() => {
     },
 
     addTo(map) {
+      _visible = true;
       markers.forEach(m => {
-        if (activePeriod === 'all' || m._ruinPeriod === activePeriod) {
-          m.addTo(map);
-        }
+        if (activePeriod === 'all' || m._ruinPeriod === activePeriod) m.addTo(map);
       });
+      // Wikidataを非同期フェッチ
+      if (!this._wdFetched) this.fetchWikidata();
     },
 
     removeFrom(map) {
+      _visible = false;
       markers.forEach(m => map.removeLayer(m));
     },
 
@@ -247,14 +380,60 @@ const RuinsLayer = (() => {
       activePeriod = period;
       if (!isVisible) return;
       markers.forEach(m => {
-        if (period === 'all' || m._ruinPeriod === period) {
-          m.addTo(map);
-        } else {
-          map.removeLayer(m);
-        }
+        if (period === 'all' || m._ruinPeriod === period) m.addTo(map);
+        else map.removeLayer(m);
       });
+    },
+
+    async fetchWikidata() {
+      this._wdFetched = true;
+      updateRuinsStatus('Wikidata取得中...');
+      const embeddedNames = new Set(RUINS_DATA.map(r => r.name));
+      const seenQids = new Set();
+      let totalAdded = 0;
+
+      for (const q of WD_QUERIES) {
+        try {
+          const url = `${WIKIDATA_SPARQL}?format=json&query=${encodeURIComponent(buildQuery(q.type))}`;
+          const res = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json = await res.json();
+
+          for (const b of json.results.bindings) {
+            const name = b.itemLabel?.value ?? '';
+            const qid = b.item?.value?.split('/').pop() ?? '';
+            if (!qid || seenQids.has(qid)) continue;
+            seenQids.add(qid);
+            if (embeddedNames.has(name)) continue;
+
+            const coordStr = b.coord?.value ?? '';
+            const m = coordStr.match(/Point\(([0-9.-]+)\s+([0-9.-]+)\)/);
+            if (!m) continue;
+
+            const ruin = {
+              id: qid, name: name || `遺跡(${qid})`,
+              lat: parseFloat(m[2]), lng: parseFloat(m[1]),
+              period: q.period, periodLabel: q.label,
+              type: q.label, city: '', pref: '',
+              desc: b.desc?.value ?? '',
+              designated: '', _wikidata: true,
+              _wd_url: `https://www.wikidata.org/wiki/${qid}`,
+            };
+            addRuinMarker(ruin, _visible ? _mapRef : null);
+            totalAdded++;
+          }
+          updateRuinsStatus(`${markers.length}件表示中...`);
+        } catch (e) {
+          console.warn(`Wikidata ${q.type} fetch failed:`, e);
+        }
+      }
+      updateRuinsStatus(`計 ${markers.length}件（Wikidata +${totalAdded}件）`);
     },
 
     get count() { return markers.length; },
   };
 })();
+
+function updateRuinsStatus(msg) {
+  const el = document.getElementById('ruins-status');
+  if (el) el.textContent = msg;
+}
