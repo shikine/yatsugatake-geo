@@ -2,15 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1e2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>八ヶ岳 地質・地盤マップ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="app">
-    <!-- サイドバー -->
+    <!-- サイドバー / モバイルではボトムシート -->
     <aside id="sidebar">
+      <!-- モバイル専用ドラッグハンドル -->
+      <div id="sheet-handle" aria-label="パネルを開く">
+        <div id="sheet-handle-bar"></div>
+        <span id="sheet-title">八ヶ岳 地質・地盤マップ</span>
+      </div>
+
       <div id="sidebar-header">
         <h1>八ヶ岳<br><span>地質・地盤マップ</span></h1>
         <p class="subtitle">Yatsugatake Geological Explorer</p>
@@ -188,6 +197,29 @@
     </div>
     <div id="modal-3d-hint">マウスドラッグ：回転 ／ スクロール：ズーム ／ 右ドラッグ：移動</div>
   </div>
+
+  <!-- モバイル FABグループ -->
+  <div id="fab-group">
+    <button id="fab-locate" class="fab" title="現在地">📍</button>
+    <button id="fab-3d" class="fab" title="3D地形">🏔️</button>
+    <button id="fab-section" class="fab" title="断面図">📐</button>
+  </div>
+
+  <!-- モバイル ボトムナビ -->
+  <nav id="bnav">
+    <button class="bnav-btn active" data-tab="map">
+      <span class="bnav-icon">🗺️</span><span class="bnav-label">レイヤー</span>
+    </button>
+    <button class="bnav-btn" data-tab="timeline">
+      <span class="bnav-icon">📅</span><span class="bnav-label">年表</span>
+    </button>
+    <button class="bnav-btn" data-tab="area">
+      <span class="bnav-icon">🧭</span><span class="bnav-label">エリア</span>
+    </button>
+    <button class="bnav-btn" id="bnav-info" data-tab="info">
+      <span class="bnav-icon">ℹ️</span><span class="bnav-label">情報</span>
+    </button>
+  </nav>
 
   <div id="loading" class="hidden">
     <div class="spinner"></div>

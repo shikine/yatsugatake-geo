@@ -859,5 +859,127 @@ function setLoading(show) {
   document.getElementById('loading').classList.toggle('hidden', !show);
 }
 
+// ─── モバイル対応 ────────────────────────────
+const IS_MOBILE = () => window.innerWidth <= 768;
+let sheetOpen = false;
+
+function initMobile() {
+  // リスナーは常に設定し、IS_MOBILE()は各ハンドラ内で確認
+
+  const sidebar  = document.getElementById('sidebar');
+  const handle   = document.getElementById('sheet-handle');
+
+  // ─ ボトムシート 開閉 ─
+  function openSheet() {
+    sidebar.classList.add('sheet-open');
+    sheetOpen = true;
+    document.querySelectorAll('.bnav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === currentTab);
+    });
+  }
+
+  function closeSheet() {
+    sidebar.classList.remove('sheet-open');
+    sheetOpen = false;
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    const content = document.getElementById(`tab-${tabId}`);
+    if (btn) btn.classList.add('active');
+    if (content) content.classList.remove('hidden');
+    currentTab = tabId;
+  }
+
+  let currentTab = 'map';
+
+  // ─ ボトムナビ ─
+  document.querySelectorAll('.bnav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (tab === 'info') {
+        // 情報タブ：現在の地点情報を表示
+        switchTab('map');
+        document.getElementById('tab-map').scrollTop = 9999; // infoまでスクロール
+        openSheet();
+      } else {
+        switchTab(tab);
+        if (!sheetOpen) {
+          openSheet();
+        } else if (currentTab === tab) {
+          closeSheet(); // 同じタブ再タップで閉じる
+        } else {
+          openSheet();
+        }
+      }
+      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // ─ FAB ─
+  document.getElementById('fab-locate')?.addEventListener('click', locateUser);
+  document.getElementById('fab-3d')?.addEventListener('click', () => VIEWER3D.open());
+  document.getElementById('fab-section')?.addEventListener('click', () => {
+    closeSheet();
+    toggleSectionMode();
+  });
+
+  // ─ ハンドルドラッグ ─
+  let dragStartY = 0, dragStartTranslate = 0, isDragging = false;
+
+  handle.addEventListener('touchstart', e => {
+    isDragging = true;
+    dragStartY = e.touches[0].clientY;
+    dragStartTranslate = sheetOpen ? 0 : sidebar.clientHeight;
+    sidebar.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dy = e.touches[0].clientY - dragStartY;
+    const newTranslate = Math.max(0, dragStartTranslate + dy);
+    sidebar.style.transform = `translateY(${newTranslate}px)`;
+  }, { passive: true });
+
+  handle.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    sidebar.style.transition = '';
+    sidebar.style.transform = '';
+    const dy = e.changedTouches[0].clientY - dragStartY;
+    if (dy > 60) {
+      closeSheet(); // 下方向にドラッグ → 閉じる
+    } else if (dy < -30) {
+      openSheet();  // 上方向にドラッグ → 開く
+    } else {
+      sheetOpen ? openSheet() : closeSheet(); // 元に戻す
+    }
+  }, { passive: true });
+
+  // ─ マップクリック時に情報タブを開く ─
+  map.on('click', () => {
+    if (!IS_MOBILE()) return;
+    // 地図クリック後、少し待ってから情報パネルが更新されていたら開く
+    setTimeout(() => {
+      const content = document.getElementById('info-content');
+      if (content && !content.querySelector('.placeholder')) {
+        switchTab('map');
+        openSheet();
+        document.querySelectorAll('.bnav-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === 'info');
+        });
+      }
+    }, 400);
+  });
+
+  // ─ シートの外（マップ）タップで閉じる ─
+  document.getElementById('map').addEventListener('click', () => {
+    if (sheetOpen) closeSheet();
+  });
+}
+
 // ─── 起動 ────────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { init(); initMobile(); });

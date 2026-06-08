@@ -1018,3 +1018,258 @@ footer {
 #sidebar::-webkit-scrollbar { width: 4px; }
 #sidebar::-webkit-scrollbar-track { background: var(--bg2); }
 #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─────────────────────────────────────────────────────────
+   モバイル専用要素（デスクトップでは非表示）
+───────────────────────────────────────────────────────── */
+#sheet-handle, #fab-group, #bnav { display: none; }
+
+/* ─────────────────────────────────────────────────────────
+   レスポンシブ: スマートフォン (≤ 768px)
+───────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* ── レイアウト基盤 ── */
+  #app {
+    display: block;
+    height: 100dvh;
+    position: relative;
+  }
+
+  /* ── マップ：全画面 ── */
+  #main {
+    position: fixed;
+    inset: 0;
+    bottom: 60px; /* ボトムナビ分 */
+  }
+
+  #map {
+    height: 100%;
+    width: 100%;
+  }
+
+  /* ── サイドバー → ボトムシート化 ── */
+  #sidebar {
+    position: fixed;
+    left: 0; right: 0; bottom: 60px;
+    width: 100%;
+    min-width: unset;
+    max-height: 85dvh;
+    border-radius: 20px 20px 0 0;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    z-index: 800;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+    box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  #sidebar.sheet-open {
+    transform: translateY(0);
+  }
+
+  /* ── シートハンドル ── */
+  #sheet-handle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px 6px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    background: var(--bg2);
+    border-radius: 20px 20px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  #sheet-handle:active { cursor: grabbing; }
+
+  #sheet-handle-bar {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 6px;
+  }
+
+  #sheet-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── デスクトップ専用ヘッダー非表示 ── */
+  #sidebar-header { display: none; }
+
+  /* ── タブをシート内で使いやすく ── */
+  #sidebar-tabs {
+    border-radius: 0;
+    position: sticky;
+    top: 62px;
+    z-index: 9;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 10px 4px;
+  }
+
+  /* ── パネル余白調整 ── */
+  .panel { padding: 12px 14px; }
+  .panel h2 { font-size: 0.72rem; }
+
+  /* ── レイヤーチェックボックスをタップしやすく ── */
+  .layer-group label {
+    font-size: 0.88rem;
+    padding: 6px 0;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  .layer-group input[type="radio"],
+  .layer-group input[type="checkbox"] {
+    width: 18px; height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── ツールボタン大きめに ── */
+  .tool-btn {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+
+  /* ── エリアボタングリッド ── */
+  .area-btn { min-height: 44px; font-size: 0.82rem; }
+
+  /* ── 断面図パネル ── */
+  #section-panel {
+    position: fixed;
+    bottom: 60px; left: 0; right: 0;
+    height: 220px;
+    z-index: 750;
+  }
+
+  /* ── ボトムナビ ── */
+  #bnav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    z-index: 900;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+    padding: 6px 4px;
+    min-height: 44px;
+  }
+
+  .bnav-btn.active { color: var(--accent); }
+  .bnav-btn:active { background: rgba(255,255,255,0.05); }
+
+  .bnav-icon { font-size: 1.3rem; line-height: 1; }
+  .bnav-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.02em; }
+
+  /* ── FABグループ ── */
+  #fab-group {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 14px;
+    bottom: 72px;
+    z-index: 780;
+    gap: 10px;
+  }
+
+  .fab {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .fab:active { transform: scale(0.92); background: var(--bg3); }
+  .fab.active { background: var(--accent); color: #0a0f1e; border-color: var(--accent); }
+
+  /* ── ズームコントロール位置調整 ── */
+  .leaflet-control-zoom {
+    top: 12px !important;
+    right: 14px !important;
+    left: auto !important;
+    margin: 0 !important;
+  }
+
+  .leaflet-top.leaflet-left { left: auto; right: 14px; top: 12px; }
+  .leaflet-top.leaflet-right { top: 12px; right: 14px; }
+
+  /* ── ポップアップをモバイルで読みやすく ── */
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .leaflet-popup-content {
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  /* ── ローディング ── */
+  #loading p { font-size: 0.82rem; }
+
+  /* ── 地図の帰属表示を小さく ── */
+  .leaflet-control-attribution {
+    font-size: 0.55rem !important;
+    max-width: 60vw;
+  }
+
+  /* ── モバイル専用: 情報タブ ── */
+  #tab-info { display: block; }
+
+  /* ── 3Dモーダル ── */
+  #modal-3d-hint { font-size: 0.65rem; }
+  #modal-3d-header { font-size: 0.8rem; padding: 6px 12px; }
+  #modal-3d-header select { font-size: 0.72rem; }
+
+  /* ── 比較スライダー ── */
+  .compare-label { font-size: 0.68rem; padding: 3px 7px; }
+  .compare-range-input::-webkit-slider-thumb { width: 36px; height: 36px; }
+
+  /* ── 詩歌・歌碑ポップアップ ── */
+  .poem-text { font-size: 0.95rem; }
+  .poem-context { font-size: 0.74rem; }
+
+  /* ── 河川ラベル ── */
+  .river-label-icon div { max-width: 90px !important; font-size: 0.65rem !important; }
+
+} /* end @media mobile */
+
+/* ─── ダークモード対応（OSの設定に追従） ─── */
+@media (prefers-color-scheme: light) {
+  /* 現状ダーク固定のため将来拡張用 */
+}
