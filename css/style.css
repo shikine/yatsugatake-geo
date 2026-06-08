@@ -426,6 +426,62 @@ footer {
   box-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
+/* ─── 河川ポップアップ ─── */
+.river-label-icon { background: transparent !important; border: none !important; }
+
+.river-popup { font-family: 'Segoe UI', sans-serif; max-width: 330px; }
+
+.river-header { margin-bottom: 8px; }
+
+.river-name {
+  font-size: 1rem; font-weight: 800; color: #1a3a6e; margin-bottom: 2px;
+}
+
+.river-watershed {
+  display: inline-block; font-size: 0.7rem; background: #e8f0fe;
+  color: #1a5fa8; border-radius: 10px; padding: 1px 8px; font-weight: 600;
+}
+
+.river-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px;
+  background: #f4f8ff; border-radius: 6px; padding: 7px 9px;
+}
+
+.river-stat { display: flex; flex-direction: column; }
+
+.stat-label { font-size: 0.65rem; color: #888; font-weight: 600; text-transform: uppercase; }
+
+.stat-val { font-size: 0.78rem; color: #222; }
+
+.river-section { margin-bottom: 7px; }
+
+.river-section-title {
+  font-size: 0.72rem; font-weight: 700; color: #444; margin-bottom: 2px;
+}
+
+.river-section p { font-size: 0.78rem; color: #333; line-height: 1.55; }
+
+.river-hazard {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid; border-radius: 5px; padding: 5px 8px; margin-bottom: 7px;
+}
+
+.hazard-risk {
+  color: #fff; font-size: 0.68rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 10px; white-space: nowrap;
+}
+
+.hazard-type { font-size: 0.75rem; color: #444; }
+
+.river-links { display: flex; flex-direction: column; gap: 4px; }
+
+.river-link {
+  font-size: 0.75rem; color: #1a6bcc; text-decoration: none;
+  padding: 3px 0; border-bottom: 1px solid #eee;
+}
+
+.river-link:hover { text-decoration: underline; }
+
 /* ─── 歌碑ポップアップ ─── */
 .kahi-popup {
   font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
