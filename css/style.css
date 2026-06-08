@@ -426,6 +426,60 @@ footer {
   box-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
+/* ─── 歌碑ポップアップ ─── */
+.kahi-popup {
+  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+  max-width: 310px;
+}
+
+.kahi-header {
+  padding-left: 9px;
+  margin-bottom: 8px;
+}
+
+.kahi-type-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-bottom: 3px;
+  font-family: sans-serif;
+}
+
+.kahi-header h3 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #1a1e2e;
+  margin: 2px 0;
+}
+
+.kahi-poet {
+  font-size: 0.72rem;
+  color: #555;
+  font-family: sans-serif;
+}
+
+.kahi-desc {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #333;
+  font-family: sans-serif;
+  margin: 6px 0;
+}
+
+.kahi-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #666;
+  font-family: sans-serif;
+  border-top: 1px solid #eee;
+  padding-top: 5px;
+  margin-top: 4px;
+}
+
 /* ─── 詩歌ポップアップ ─── */
 .poem-popup {
   font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;

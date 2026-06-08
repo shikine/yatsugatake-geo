@@ -111,9 +111,10 @@ function init() {
     ),
   };
 
-  // 遺跡・詩歌レイヤー初期化
+  // 遺跡・詩歌・歌碑レイヤー初期化
   RuinsLayer.init(map);
   PoemsLayer.init(map);
+  KahiLayer.init(map);
 
   // ボーリングマーカー追加
   addBoringMarkers();
@@ -314,6 +315,11 @@ function setupControls(baseLayers) {
   // 詩歌レイヤー
   document.getElementById('layer-poems').addEventListener('change', e => {
     e.target.checked ? PoemsLayer.addTo(map) : PoemsLayer.removeFrom(map);
+  });
+
+  // 歌碑・句碑レイヤー
+  document.getElementById('layer-kahi').addEventListener('change', e => {
+    e.target.checked ? KahiLayer.addTo(map) : KahiLayer.removeFrom(map);
   });
 
   // 古地図レイヤー チェックボックス
